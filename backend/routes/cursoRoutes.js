@@ -22,4 +22,7 @@ router.post(
     cursoController.criar
 );
 
+router.put('/:id', authMiddleware, autorizarPerfis('admin', 'coordenador'), cursoController.atualizar);
+router.delete('/:id', authMiddleware, autorizarPerfis('admin', 'coordenador'), cursoController.arquivar);
+
 module.exports = router;

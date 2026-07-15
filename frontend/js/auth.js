@@ -27,13 +27,18 @@ if (formLogin) {
       const data = await response.json();
 
       if (response.ok) {
-        // Guarda o Token JWT no navegador para as próximas requisições
         localStorage.setItem("token", data.token);
-        // Redireciona para o painel do utilizador
-        window.location.href = "painel.html";
-      } else {
-        msgErro.textContent = data.erro;
-        msgErro.classList.remove("d-none");
+
+        // Redirecionamento Inteligente baseado no Perfil (RBAC)
+        const perfil = data.utilizador.perfil;
+
+        if (perfil === "admin" || perfil === "coordenador") {
+          window.location.href = "admin.html";
+        } else if (perfil === "profissional") {
+          window.location.href = "profissional.html";
+        } else {
+          window.location.href = "painel.html"; // Candidato/Modelo
+        }
       }
     } catch (error) {
       console.error("Erro na requisição:", error);

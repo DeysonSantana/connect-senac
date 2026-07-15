@@ -36,6 +36,9 @@ app.use('/api/agendamentos', agendamentoRoutes)
 app.use('/api/cursos', cursoRoutes)
 app.use('/api/disponibilidades', disponibilidadeRoutes)
 app.use('/api/dashboard', require('./backend/routes/dashboardRoutes'));
+app.use('/api/admin', require('./backend/routes/adminRoutes'));
+app.use('/api/profissional', require('./backend/routes/profissionalRoutes'));
+app.use('/api/feedbacks', require('./backend/routes/feedbackRoutes'));
 
 
 

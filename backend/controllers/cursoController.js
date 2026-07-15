@@ -54,3 +54,41 @@ exports.criar = async (req, res) => {
         res.status(500).json({ erro: 'Erro interno ao criar o curso.' });
     }
 };
+
+// Atualizar dados de um curso existente
+exports.atualizar = async (req, res) => {
+    const { id } = req.params;
+    const { nome, descricao, motivo_modelo, restricoes, profissional_id } = req.body;
+
+    try {
+        const { data, error } = await supabase
+            .from('cursos')
+            .update({ nome, descricao, motivo_modelo, restricoes, profissional_id })
+            .eq('id', id)
+            .select();
+
+        if (error) throw error;
+        res.json({ mensagem: 'Curso atualizado com sucesso!', curso: data[0] });
+    } catch (error) {
+        console.error('Erro ao atualizar curso:', error.message);
+        res.status(500).json({ erro: 'Erro interno ao atualizar o curso.' });
+    }
+};
+
+// Arquivar curso (Soft Delete para manter histórico de agendamentos intacto)
+exports.arquivar = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const { error } = await supabase
+            .from('cursos')
+            .update({ status: 'arquivado' })
+            .eq('id', id);
+
+        if (error) throw error;
+        res.json({ mensagem: 'Curso arquivado com sucesso e removido do catálogo!' });
+    } catch (error) {
+        console.error('Erro ao arquivar curso:', error.message);
+        res.status(500).json({ erro: 'Erro ao remover o curso do catálogo.' });
+    }
+};

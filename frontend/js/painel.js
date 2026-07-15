@@ -13,6 +13,7 @@ document.getElementById('btnSair').addEventListener('click', () => {
 
 // Instância do Modal do Bootstrap para controlo via JS
 const modalAgendamento = new bootstrap.Modal(document.getElementById('modalAgendamento'));
+const modalFeedback = new bootstrap.Modal(document.getElementById('modalFeedback'));
 
 // ==========================================
 // 1. CARREGAR A VITRINE DE CURSOS
@@ -144,15 +145,17 @@ async function carregarMeusAgendamentos(){
             const cursoNome = ag.disponibilidades.cursos.nome;
             const dataHora = new Date(ag.disponibilidades.data_hora).toLocaleString('pt-BR');
             let badge = '';
-            let btnCancelar = '';
+            let acoesHTML = '';
 
             if (ag.status === 'agendado') {
                 badge = '<span class="badge bg-primary">Confirmado</span>';
-                btnCancelar = `<button class="btn btn-sm btn-outline-danger mt-2 w-100" onclick="cancelarAgendamento('${ag.id}')">Cancelar</button>`;
+                acoesHTML = `<button class="btn btn-sm btn-outline-danger mt-2 w-100" onclick="cancelarAgendamento('${ag.id}')">Cancelar Inscrição</button>`;
             } else if (ag.status === 'cancelado') {
                 badge = '<span class="badge bg-danger">Cancelado</span>';
-            } else {
+            } else if (ag.status === 'concluido') {
                 badge = '<span class="badge bg-success">Concluído</span>';
+                // Mostra o botão para avaliar a aula prática
+                acoesHTML = `<button class="btn btn-sm btn-warning mt-2 w-100 fw-bold" onclick="abrirModalFeedback('${ag.id}')">⭐ Avaliar Serviço</button>`;
             }
 
             const card = `
@@ -164,7 +167,7 @@ async function carregarMeusAgendamentos(){
                                 ${badge}
                             </div>
                             <div class="text-secondary small mb-2"><i class="bi bi-calendar"></i> ${dataHora}</div>
-                            ${btnCancelar}
+                            ${acoesHTML}
                             <div id="msg-canc-${ag.id}" class="small text-center mt-1"></div>
                         </div>
                     </div>
@@ -197,6 +200,58 @@ async function cancelarAgendamento(agendamentoId){
     } catch (error) {
         msgDiv.innerHTML = '<span class="text-danger">Erro ao processar pedido.</span>';
     }
+}
+
+// ==========================================
+// MÓDULO DE FEEDBACK
+// ==========================================
+function abrirModalFeedback(agendamentoId){
+    document.getElementById('feedbackAgendamentoId').value = agendamentoId;
+    document.getElementById('feedbackNota').value = '5'; // Padrão 5 estrelas
+    document.getElementById('feedbackComentario').value = '';
+    document.getElementById('msgFeedback').innerHTML = '';
+    modalFeedback.show();
+}
+
+const formFeedback = document.getElementById('formFeedback');
+if (formFeedback) {
+    formFeedback.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgDiv = document.getElementById('msgFeedback');
+        msgDiv.innerHTML = '<span class="text-primary">A processar avaliação...</span>';
+
+        const payload = {
+            agendamento_id: document.getElementById('feedbackAgendamentoId').value,
+            nota: parseInt(document.getElementById('feedbackNota').value),
+            comentario: document.getElementById('feedbackComentario').value
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/feedbacks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                msgDiv.innerHTML = `<span class="text-success">${data.mensagem}</span>`;
+                setTimeout(() => {
+                    modalFeedback.hide();
+                    // Opcional: Aqui podíamos atualizar a UI para esconder o botão de avaliar,
+                    // mas por agora o backend já bloqueia duplicações de forma segura.
+                }, 2000);
+            } else {
+                msgDiv.innerHTML = `<span class="text-danger">${data.erro}</span>`;
+            }
+        } catch (error) {
+            msgDiv.innerHTML = '<span class="text-danger">Erro de ligação.</span>';
+        }
+    });
 }
 
 // Inicializa a página carregando tudo
