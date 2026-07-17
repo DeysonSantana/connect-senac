@@ -2,7 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-
 const authMiddleware = require('../middlewares/authMiddleware');
 const autorizarPerfis = require('../middlewares/rbacMiddleware');
 
@@ -18,5 +17,9 @@ router.post('/colaboradores', authMiddleware, autorizarPerfis('admin'), adminCon
 router.get('/profissionais', authMiddleware, autorizarPerfis('admin', 'coordenador'), adminController.listarProfissionais);
 
 router.delete('/usuarios/:id', authMiddleware, autorizarPerfis('admin', 'coordenador'), adminController.excluirUsuario);
+
+router.put('/usuarios/:id/perfil', authMiddleware, autorizarPerfis('admin'), adminController.alterarPerfil);
+
+router.get('/pautas', authMiddleware, autorizarPerfis('admin', 'coordenador'), adminController.listarPautasGlobais);
 
 module.exports = router;
